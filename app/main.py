@@ -11,6 +11,7 @@ from LPUSH import LPUSH
 from LRANGE import LRANGE
 from LLEN import LLEN
 from LPOP import LPOP
+from BLPOP import BLPOP
 storeKeyExpires = {} #schema key : (value,timestamp)
 storeKeyExpiresLock = threading.Lock()
 
@@ -23,7 +24,8 @@ command_map = {
     "LPUSH" : LPUSH,
     "LRANGE" : LRANGE,
     "LLEN"  : LLEN,
-    "LPOP"  : LPOP
+    "LPOP"  : LPOP,
+    "BLPOP" : BLPOP
 }
 
 
