@@ -59,4 +59,3 @@ def LPOP(clientConnection,command:list):
         print(e)
         return
     
-print(LPOP(None,["LPOP","list_key","-1"]))

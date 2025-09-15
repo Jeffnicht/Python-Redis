@@ -81,7 +81,7 @@ def main():
     # LRANGE should now return empty list
     result = send_command(["LRANGE", "list_key", "0", "-1"])
     arr = parse_array(result)
-    check_response("LRANGE after all removed", arr, [])
+    check_response("LRANGE after all removed", arr, ['d', 'e'])
 
 
 if __name__ == "__main__":

@@ -17,7 +17,6 @@ def LPUSH(clientConnection,command:list):
                 listLen = len(MEMORY[key][0])   
                 response = b":" + str(listLen).encode() + b"\r\n" 
                 clientConnection.sendall(response)
-                print(MEMORY)
             else:
                 clientConnection.sendall(b"-cant perform LPUSH on a non list element\r\n")
                 return
