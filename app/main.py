@@ -1,0 +1,97 @@
+import socket
+import threading, time
+from Pong import PONG
+from RPP import decodeCommand
+from ECHO import ECHO
+from GET import GET
+from SET import SET
+from memory import MEMORY
+from RPUSH import RPUSH
+from LPUSH import LPUSH 
+from LRANGE import LRANGE
+from LLEN import LLEN
+from LPOP import LPOP
+storeKeyExpires = {} #schema key : (value,timestamp)
+storeKeyExpiresLock = threading.Lock()
+
+command_map = {
+    "ECHO": ECHO,
+    "PING": PONG,
+    "SET": SET,
+    "GET": GET,
+    "RPUSH" : RPUSH,
+    "LPUSH" : LPUSH,
+    "LRANGE" : LRANGE,
+    "LLEN"  : LLEN,
+    "LPOP"  : LPOP
+}
+
+
+def expireKeys():
+    while True:
+        now = time.time()
+        keys_to_delete = []
+
+        for key, (value, expiry) in MEMORY.items():
+            if expiry and expiry <= now:
+                keys_to_delete.append(key)
+
+        for key in keys_to_delete:
+            MEMORY.pop(key, None)
+
+        time.sleep(0.1)
+
+
+
+
+         
+
+def commandMapper(command: list[str]):
+    # look up the function in O(1)
+    func = command_map.get(command[0].upper())
+    if func:
+        return func
+    else:
+        return lambda conn, cmd: conn.sendall(b"-ERR unknown command\r\n")
+
+# function to handle a single client
+#TODO: implement buffer handle_clinet doesnt assume the biggest message is 1024 bytes 
+def handle_client(clientConnection):
+    try:
+        while True:
+            try:
+                raw_data = clientConnection.recv(1024)
+            except (ConnectionResetError, ConnectionAbortedError) as e:
+                print("Client connection aborted:", e)
+                break
+
+            if not raw_data:
+                print("Client disconnected gracefully")
+                break
+
+            # decode and handle command
+            data = decodeCommand(raw_data)
+            print("data:", data)
+            func = commandMapper(data)
+            if func:
+                func(clientConnection, data)
+
+    finally:
+        clientConnection.close()
+        print("Connection closed")
+
+
+def main():
+    print("Logs from your program will appear here!")
+    threading.Thread(target=expireKeys, daemon=True).start()
+    server_socket = socket.create_server(("127.0.0.1", 6379))
+    
+
+    while True:
+        clientConnection, _ = server_socket.accept()
+        print("Got new connection")
+        thread = threading.Thread(target=handle_client, args=(clientConnection,))
+        thread.start()
+
+if __name__ == "__main__":
+    main()
