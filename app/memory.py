@@ -3,6 +3,6 @@ MEMORY = {
 }             # schema key ,value , timestamp   if no timestamp set it to None = doesnt expire 
 
 BLOCKED_CLIENTS = {
-    "listKey" : []
+    #"listKey" : []
               # schema key,[[client connection,locktime],[client connection,locktime]]
 }

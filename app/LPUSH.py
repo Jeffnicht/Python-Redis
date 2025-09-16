@@ -1,5 +1,6 @@
 from memory import MEMORY
 import threading
+from helpers.serveBlockedClients import serveBlockedClients
 lock = threading.Lock()
 #insert elements at the beginning of list in reverse order 
 def LPUSH(clientConnection,command:list):
@@ -25,6 +26,7 @@ def LPUSH(clientConnection,command:list):
                 MEMORY[key] = ([*elements],None) #hardcode TTL to none
             response = b":" + str(len(MEMORY[key][0])).encode() + b"\r\n"
             clientConnection.sendall(response)
+            serveBlockedClients()
     except Exception as e:
         print(e)
         clientConnection.sendall(b"-LPUSH didnt work\r\n")

@@ -3,8 +3,8 @@ import socket
 # ANSI color codes
 GREEN = "\033[92m"
 RED = "\033[91m"
-RESET = "\033[0m"
 
+RESET = "\033[0m"
 def send_command(command: list[str]) -> str:
     """Build RESP array from command and send it to the server."""
     resp = f"*{len(command)}\r\n"
