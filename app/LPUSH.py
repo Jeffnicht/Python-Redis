@@ -18,6 +18,8 @@ def LPUSH(clientConnection,command:list):
                 listLen = len(MEMORY[key][0])   
                 response = b":" + str(listLen).encode() + b"\r\n" 
                 clientConnection.sendall(response)
+                serveBlockedClients(key)
+                return
             else:
                 clientConnection.sendall(b"-cant perform LPUSH on a non list element\r\n")
                 return
@@ -26,7 +28,8 @@ def LPUSH(clientConnection,command:list):
                 MEMORY[key] = ([*elements],None) #hardcode TTL to none
             response = b":" + str(len(MEMORY[key][0])).encode() + b"\r\n"
             clientConnection.sendall(response)
-            serveBlockedClients()
+            serveBlockedClients(key)
+            return
     except Exception as e:
         print(e)
         clientConnection.sendall(b"-LPUSH didnt work\r\n")

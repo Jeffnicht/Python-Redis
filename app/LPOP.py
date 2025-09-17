@@ -19,6 +19,8 @@ def LPOP(clientConnection,command:list):
                 if commandLen == 2:
                     with lock:
                         response = MEMORY[key][0].pop(0)
+                        if not MEMORY[key][0]:  # list is empty
+                            del MEMORY[key]
                     response = str(response).encode()
                     strLen = str(response).encode() 
                     clientConnection.sendall(b"$" + strLen + b"\r\n" + response + b"\r\n") #$<length>\r\n<data>\r\n"
@@ -32,8 +34,8 @@ def LPOP(clientConnection,command:list):
                         clientConnection.sendall(b"-Provided range wasnt a valid number")
                         return
                     listLen = len(tempQueryedElement[0])
-                    if toRemoveRange < 0:
-                        clientConnection.sendall(b"-LPOP only accepts negative integer")
+                    if toRemoveRange <= 0:
+                        clientConnection.sendall(b"-LPOP only accepts positive integer")
                         return
                     elif  listLen >= toRemoveRange:
                         removeList = tempQueryedElement[0][:toRemoveRange]
@@ -41,6 +43,9 @@ def LPOP(clientConnection,command:list):
                         clientConnection.sendall(response)
                         with lock:
                             MEMORY[key][0][:] = tempQueryedElement[0][toRemoveRange:]
+                            if not MEMORY[key][0]:  # list is empty
+                                del MEMORY[key]
+                            
                     else:
                         # list elements to delete are longer than the list return the list 
                         clientConnection.sendall(arrayToRESP(tempQueryedElement[0]))

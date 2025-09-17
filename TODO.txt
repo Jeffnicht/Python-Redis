@@ -1,3 +1,8 @@
 LPOP:
     could implement a pointer that points to the list start so u dont have to slice lists 
     when using LPOP with range but this would require me making a new list class might do that at the end of project
+
+
+
+Implement serveBlockedClients() to LPUSH and RPUSH and complete serveBlockedClients helper function
+
