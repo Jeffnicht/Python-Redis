@@ -20,5 +20,3 @@ def BLPOP(clientConnection,command:list):
     except Exception as e:
         clientConnection.sendall(b"BLPOP didnt work")
         print(e)
-
-

@@ -14,6 +14,7 @@ from LPOP import LPOP
 from BLPOP import BLPOP
 storeKeyExpires = {} #schema key : (value,timestamp)
 storeKeyExpiresLock = threading.Lock()
+bytesPerMessage = 1024
 
 command_map = {
     "ECHO": ECHO,
@@ -57,26 +58,34 @@ def commandMapper(command: list[str]):
         return lambda conn, cmd: conn.sendall(b"-ERR unknown command\r\n")
 
 # function to handle a single client
-#TODO: implement buffer handle_clinet doesnt assume the biggest message is 1024 bytes 
 def handle_client(clientConnection):
+    buffer = bytearray()  # per-client buffer
+
     try:
         while True:
             try:
-                raw_data = clientConnection.recv(1024)
-            except (ConnectionResetError, ConnectionAbortedError) as e:
-                print("Client connection aborted:", e)
+                chunk = clientConnection.recv(bytesPerMessage)
+            except (ConnectionResetError, ConnectionAbortedError):
+                print("Client connection aborted")
                 break
 
-            if not raw_data:
+            if not chunk:
                 print("Client disconnected gracefully")
                 break
 
-            # decode and handle command
-            data = decodeCommand(raw_data)
-            print("data:", data)
-            func = commandMapper(data)
-            if func:
-                func(clientConnection, data)
+            buffer.extend(chunk)
+
+            # parse all complete commands
+            while True:
+                try:
+                    command, consumed = decodeCommand(buffer)  # decodeCommand must return bytes consumed
+                    buffer = buffer[consumed:]
+                    func = commandMapper(command)
+                    if func:
+                        func(clientConnection, command)
+                except ValueError:
+                    # incomplete command, wait for more data
+                    break
 
     finally:
         clientConnection.close()
@@ -97,3 +106,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

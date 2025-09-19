@@ -1,82 +1,66 @@
 @staticmethod
-def decodeCommand(rawStr:bytes):
-    prefix =rawStr[0]
-    match prefix:
-        case 43: #+
-            # RESP2 Simple string
-            return rawStr[1:-2].decode("utf-8")
-        case 45: #-
-            #simple error
-            return rawStr[1:-2].decode("utf-8")
-        
-        case 58: #[+|-] 
-            #handles plus or minus ints no prefix means positive int
-            if rawStr[1] == 43:
-                return int(rawStr[2:-2].decode("utf-8"))
-            elif rawStr[1] == 45:
-                return int(rawStr[2:-2].decode("utf-8")) *-1
-            else:
-                return int(rawStr[1:-2].decode("utf-8"))
-        # RESP2 Aggregate
-        case 36: #$
-            #"Bulk String (RESP2) schema: $<length>\r\n<data>\r\n"
-            
-            #finds index of the beginning of the actual command contend
-            indexOfLinebreak = rawStr.find(b"\r")+1
-            rawSubStr = bytearray()
+def decodeCommand(rawStr: bytes) -> tuple[list[str] | str | int, int]:
+    """
+    Parses one RESP message from rawStr.
+    Returns (parsed_value, bytes_consumed).
+    Raises ValueError if the message is incomplete.
+    """
+    if not rawStr:
+        raise ValueError("Empty input")
 
-            end = rawStr.find(b"\r", indexOfLinebreak)
-            rawSubStr = rawStr[indexOfLinebreak+1:end]
-            return rawSubStr.decode("utf-8")
+    prefix = rawStr[0]
 
-        case 42: #*
-            #*<number-of-elements>\r\n<element-1>...<element-n> |||| *3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$5\r\nvalue\r\n*2\r\n$3\r\nGET\r\n$5\r\nmykey\r\n
-            pos = 0
-            n = len(rawStr)
-            out = []
+    # Simple string
+    if prefix == ord('+') or prefix == ord('-') or prefix == ord(':'):
+        end = rawStr.find(b"\r\n")
+        if end == -1:
+            raise ValueError("Incomplete message")
+        data = rawStr[1:end]
+        consumed = end + 2
+        if prefix == ord('+') or prefix == ord('-'):
+            return data.decode("utf-8"), consumed
+        elif prefix == ord(':'):
+            return int(data), consumed
 
-            if rawStr[pos] != ord('*'):
-                raise ValueError("Expected array start '*'")
-            
-            pos += 1
-            end = rawStr.find(b'\r\n', pos)
-            n_elements = int(rawStr[pos:end])
-            pos = end + 2
+    # Bulk string
+    elif prefix == ord('$'):
+        end = rawStr.find(b"\r\n")
+        if end == -1:
+            raise ValueError("Incomplete message")
+        length = int(rawStr[1:end])
+        total_len = end + 2 + length + 2
+        if len(rawStr) < total_len:
+            raise ValueError("Incomplete message")
+        data = rawStr[end+2:end+2+length].decode("utf-8")
+        return data, total_len
 
-            for _ in range(n_elements):
-                prefix = rawStr[pos]
-                pos += 1
+    # Array
+    elif prefix == ord('*'):
+        pos = 1
+        end = rawStr.find(b"\r\n", pos)
+        if end == -1:
+            raise ValueError("Incomplete message")
+        n_elements = int(rawStr[pos:end])
+        pos = end + 2
+        out = []
 
-                if prefix == ord('$'):  # bulk string
-                    end = rawStr.find(b'\r\n', pos)
-                    length = int(rawStr[pos:end])
-                    pos = end + 2
-                    arg = rawStr[pos:pos+length].decode("utf-8")
-                    pos += length + 2  # skip trailing \r\n
-                    out.append(arg)
+        for _ in range(n_elements):
+            if pos >= len(rawStr):
+                raise ValueError("Incomplete message")
+            element_prefix = rawStr[pos]
+            sub_value, consumed = decodeCommand(rawStr[pos:])
+            out.append(sub_value)
+            pos += consumed
 
-                elif prefix == ord('+'):  # simple string
-                    end = rawStr.find(b'\r\n', pos)
-                    out.append(rawStr[pos:end].decode("utf-8"))
-                    pos = end + 2
+        return out, pos
 
-                elif prefix == ord('-'):  # error
-                    end = rawStr.find(b'\r\n', pos)
-                    out.append(rawStr[pos:end].decode("utf-8"))  # or raise
-                    pos = end + 2
+    # Boolean (RESP3)
+    elif prefix == ord('#'):
+        end = rawStr.find(b"\r\n")
+        if end == -1:
+            raise ValueError("Incomplete message")
+        return rawStr[1:end].decode("utf-8"), end + 2
 
-                elif prefix == ord(':'):  # integer
-                    end = rawStr.find(b'\r\n', pos)
-                    out.append(int(rawStr[pos:end]))
-                    pos = end + 2
-
-                else:
-                    raise ValueError(f"Unsupported prefix: {chr(prefix)}")
-
-            return out
-        case "#":
-            return "Boolean (RESP3)"
-
-        # Default case
-        case _:
-            return f"Unknown prefix: {prefix}"
+    # Unknown
+    else:
+        raise ValueError(f"Unknown prefix: {prefix}")
