@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from memory import MEMORY,BLOCKED_CLIENTS
 def BLPOP(clientConnection,command:list):
-    
     try:
+        print(clientConnection)
         listsToLock,lockDuration = command[1:-1],command[-1]
         for key in listsToLock:
             lockDurationInt = int(lockDuration) 
@@ -15,8 +15,9 @@ def BLPOP(clientConnection,command:list):
                     BLOCKED_CLIENTS[key].append([clientConnection,lockExpiresAt])
                 else:
                     BLOCKED_CLIENTS[key] = [[clientConnection,lockExpiresAt]]
+        print("Got Here", BLOCKED_CLIENTS)
 
-
+        return
     except Exception as e:
         clientConnection.sendall(b"BLPOP didnt work")
         print(e)
