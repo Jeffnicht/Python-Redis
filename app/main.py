@@ -13,6 +13,7 @@ from LLEN import LLEN
 from LPOP import LPOP
 from BLPOP import BLPOP
 from TYPE import TYPE
+from XADD import XADD 
 from helpers.blockedClientCleaner import blockedClientCleaner
 
 bytesPerMessage = 1024
@@ -28,7 +29,8 @@ command_map = {
     "LLEN"  : LLEN,
     "LPOP"  : LPOP,
     "BLPOP" : BLPOP,
-    "TYPE"  : TYPE
+    "TYPE"  : TYPE,
+    "XADD"  : XADD
 }
 
 
