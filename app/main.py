@@ -12,6 +12,7 @@ from LRANGE import LRANGE
 from LLEN import LLEN
 from LPOP import LPOP
 from BLPOP import BLPOP
+from TYPE import TYPE
 from helpers.blockedClientCleaner import blockedClientCleaner
 
 bytesPerMessage = 1024
@@ -26,7 +27,8 @@ command_map = {
     "LRANGE" : LRANGE,
     "LLEN"  : LLEN,
     "LPOP"  : LPOP,
-    "BLPOP" : BLPOP
+    "BLPOP" : BLPOP,
+    "TYPE"  : TYPE
 }
 
 
@@ -46,10 +48,6 @@ def expireKeys():
 
 
 
-
-
-         
-
 def commandMapper(command: list[str]):
     # look up the function in O(1)
     func = command_map.get(command[0].upper())
@@ -65,7 +63,7 @@ def handle_client(clientConnection):
     try:
         while True:
             try:
-                chunk = clientConnection.recv(bytesPerMessage)
+                chunk = clientConnection.recv(bytesPerMessage) #1024 initiated in line 17
             except (ConnectionResetError, ConnectionAbortedError):
                 print("Client connection aborted")
                 break

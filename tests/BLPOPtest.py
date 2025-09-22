@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     # Wait longer than 5 seconds so the timeout BLPOP expires
     print("Waiting 6 seconds for timeout BLPOP to trigger $-1...")
-    time.sleep(6+3)
+    time.sleep(6)
 
     # Join threads (the forever ones may stay blocked until push)
     for t in threads:

@@ -1,5 +1,5 @@
 from memory import MEMORY, lock
-import threading
+
 
 def GET(clientConnection,command: list[str]):
     try:
