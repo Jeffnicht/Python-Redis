@@ -1,6 +1,6 @@
-from memory import MEMORY
+from memory import MEMORY,lock
 import threading
-lock = threading.Lock()
+
 import time
 nx = False
 def SET(clientConnection,command: list[str]):

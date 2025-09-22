@@ -1,6 +1,7 @@
-from memory import MEMORY
+from memory import MEMORY,lock
 import threading
-lock = threading.Lock()
+from helpers.serveBlockedClients import serveBlockedClients
+
 def RPUSH(clientConnection,command:list):
     try:
         if len(command) < 3:
@@ -17,6 +18,7 @@ def RPUSH(clientConnection,command:list):
                 indexOfNewItem = len(MEMORY[key][0])   
                 response = b":" + str(indexOfNewItem).encode() + b"\r\n" 
                 clientConnection.sendall(response)
+                serveBlockedClients(key)    
             else:
                 clientConnection.sendall(b"-cant perform RPUSH on a non list element\r\n")
         elif key not in MEMORY:
@@ -24,6 +26,8 @@ def RPUSH(clientConnection,command:list):
                 MEMORY[key] = ([*elements],None) #hardcode TTL to none
              response = b":" + str(len(MEMORY[key][0])).encode() + b"\r\n"
              clientConnection.sendall(response)
+             serveBlockedClients(key)
+             
     except Exception as e:
         print(e)
         clientConnection.sendall(b"-RPUSH didnt work\r\n")

@@ -1,6 +1,6 @@
-from memory import MEMORY
+from memory import MEMORY, lock
 import threading
-lock = threading.Lock()
+
 def GET(clientConnection,command: list[str]):
     try:
         with lock:

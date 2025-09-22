@@ -1,34 +1,43 @@
 from memory import BLOCKED_CLIENTS, MEMORY
 import threading
+import time
 from helpers.arrayToRESPString import arrayToRESP
 
 lock = threading.Lock()
 
 def serveBlockedClients(key: str):
-    print("Got to the W8 list")
+    while True:
+        # Step 1: exit if no blocked clients or no memory
+        if key not in BLOCKED_CLIENTS or key not in MEMORY:
+            break
 
-    if key in BLOCKED_CLIENTS and key in MEMORY:
         with lock:
-            values, expire_time = MEMORY[key]
+            # Step 2: check first client for timeout
+            clientConnection, expire_time = BLOCKED_CLIENTS[key][0]
+            if expire_time != 0 and expire_time < time.time():
+                clientConnection.sendall(b"$-1\r\n")
+                del BLOCKED_CLIENTS[key][0]
+                if not BLOCKED_CLIENTS.get(key):
+                    del BLOCKED_CLIENTS[key]
+                continue  # skip to next iteration
 
-            if not values:  # nothing to pop
-                return
+            # Step 3: check if there is a value to pop
+            values, retainTime = MEMORY[key]
+            if not values:
+                break
 
-            poppedItem = values.pop(0)  # BLPOP → pop from head
-            clientConnection, locktime = BLOCKED_CLIENTS[key].pop(0)
+            # Step 4: pop value and client
+            poppedItem = values.pop(0)
+            clientConnection, _ = BLOCKED_CLIENTS[key].pop(0)
 
-            # update or delete MEMORY
+            # Step 5: clean up memory
             if not values:
                 del MEMORY[key]
-            else:
-                MEMORY[key] = (values, expire_time)
 
-            # cleanup blocked clients
-            if not BLOCKED_CLIENTS[key]:
-                del BLOCKED_CLIENTS[key]
+            # Step 6: clean up blocked clients key
+            if not BLOCKED_CLIENTS.get(key):
+                BLOCKED_CLIENTS.pop(key, None)
 
+        # Step 7: send response outside lock
         response = arrayToRESP([key, poppedItem])
         clientConnection.sendall(response)
-        print("Sent response to blocked client")
-
-    return

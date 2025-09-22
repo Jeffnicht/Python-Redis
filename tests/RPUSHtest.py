@@ -56,11 +56,9 @@ def check_response(testcase: str, actual_resp: str, expected_value):
 def main():
     print("== Testing RPUSH ==")
 
-    # Clean up: ensure fresh key
-    send_command(["DEL", "list_key"])
 
     # RPUSH one element
-    result = send_command(["RPUSH", "list_key"])
+    result = send_command(["RPUSH", "list_key","a"])
     check_response("RPUSH a", result, 1)
 
     # RPUSH multiple elements at once

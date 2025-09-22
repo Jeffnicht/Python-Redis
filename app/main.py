@@ -5,15 +5,15 @@ from RPP import decodeCommand
 from ECHO import ECHO
 from GET import GET
 from SET import SET
-from memory import MEMORY
+from memory import MEMORY,lock
 from RPUSH import RPUSH
 from LPUSH import LPUSH 
 from LRANGE import LRANGE
 from LLEN import LLEN
 from LPOP import LPOP
 from BLPOP import BLPOP
-storeKeyExpires = {} #schema key : (value,timestamp)
-storeKeyExpiresLock = threading.Lock()
+from helpers.blockedClientCleaner import blockedClientCleaner
+
 bytesPerMessage = 1024
 
 command_map = {
@@ -34,15 +34,16 @@ def expireKeys():
     while True:
         now = time.time()
         keys_to_delete = []
+        with lock:  # acquire lock before touching MEMORY
+            for key, (value, expiry) in MEMORY.items():
+                if expiry and expiry <= now:
+                    keys_to_delete.append(key)
 
-        for key, (value, expiry) in MEMORY.items():
-            if expiry and expiry <= now:
-                keys_to_delete.append(key)
-
-        for key in keys_to_delete:
-            MEMORY.pop(key, None)
+            for key in keys_to_delete:
+                MEMORY.pop(key, None)
 
         time.sleep(0.1)
+
 
 
 
@@ -94,15 +95,21 @@ def handle_client(clientConnection):
 
 def main():
     print("Logs from your program will appear here!")
+
+    # start key expiration cleaner
     threading.Thread(target=expireKeys, daemon=True).start()
+
+    # start blocked client cleaner
+    threading.Thread(target=blockedClientCleaner, daemon=True).start()
+
     server_socket = socket.create_server(("127.0.0.1", 6379))
     
-
     while True:
         clientConnection, _ = server_socket.accept()
         print("Got new connection")
         thread = threading.Thread(target=handle_client, args=(clientConnection,))
         thread.start()
+
 
 if __name__ == "__main__":
     main()

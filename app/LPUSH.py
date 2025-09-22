@@ -1,7 +1,6 @@
-from memory import MEMORY
+from memory import MEMORY,lock
 import threading
 from helpers.serveBlockedClients import serveBlockedClients
-lock = threading.Lock()
 #insert elements at the beginning of list in reverse order 
 def LPUSH(clientConnection,command:list):
     try:

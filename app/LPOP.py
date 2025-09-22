@@ -1,6 +1,5 @@
-from memory import MEMORY
+from memory import MEMORY,lock
 import threading
-lock = threading.Lock()
 from helpers.arrayToRESPString import arrayToRESP
 def LPOP(clientConnection,command:list):
     try:
