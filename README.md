@@ -54,21 +54,21 @@ Each command exists in its own Python file.
 ### **Streams (WIP)**
 - `XADD`
 
-### **Command Files**
-BLPOP.py
+### Command Files
 
-ECHO.py
-GET.py
-LLEN.py
-LPOP.py
-LPUSH.py
-LRANGE.py
-Pong.py
-RESP.py
-RPUSH.py
-SET.py
-TYPE.py
-XADD.py
+- BLPOP.py
+- ECHO.py
+- GET.py
+- LLEN.py
+- LPOP.py
+- LPUSH.py
+- LRANGE.py
+- Pong.py
+- RESP.py
+- RPUSH.py
+- SET.py
+- TYPE.py
+- XADD.py
 
 ---
 
