@@ -111,6 +111,7 @@ These tests help ensure Redis-like behavior and internal consistency.
 ```bash
 # Clone the repository
 git clone https://github.com/Jeffnicht/Python-Redis.git
+cd app
 
 # Run the server
 python main.py
