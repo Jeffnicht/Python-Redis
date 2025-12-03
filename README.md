@@ -7,19 +7,19 @@ The goal of the project is to explore how Redis works internally — networking,
 
 ---
 
-## 🚧 Project Status
+## Project Status
 
-- ❗ **Not production-ready**
-- 💤 **Project currently on hold**
-- 📦 Docker support **planned**
-- 🔄 Reverse proxy **planned**
-- 🗃️ Volatile Memory 
-- 🔌 Uses raw TCP sockets + a custom version of the **RESP protocol**
-- 💬 Streams support is **work-in-progress**
+- **Not production-ready**
+- **Project currently on hold**
+- Docker support **planned**
+- Reverse proxy **planned**
+- Volatile Memory 
+- Uses raw TCP sockets + a custom version of the **RESP protocol**
+- Streams support is **work-in-progress**
 
 ---
 
-## 📡 RESP — Redis Serialization Protocol (Custom Implementation)
+## RESP — Redis Serialization Protocol (Custom Implementation)
 
 The server communicates over TCP sockets using a custom-built RESP parser, inspired by Redis' own protocol but adapted for this implementation.
 
@@ -30,7 +30,7 @@ Implementation file:
 
 ---
 
-## ✔️ Implemented Commands
+## Implemented Commands
 
 Each command exists in its own Python file.
 
@@ -71,11 +71,11 @@ XADD.py
 
 ---
 
-## 📁 Data Storage
+## Data Storage
 
 Data is stored in a "complex" python dict
 
-## 🔌 Networking
+## Networking
 
 The server:
 
@@ -86,14 +86,14 @@ The server:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 A `tests/` directory includes unit tests for most implemented commands.  
 These tests help ensure Redis-like behavior and internal consistency.
 
 ---
 
-## 🛠️ Planned Features
+## Planned Features
 
 - Docker image & docker-compose setup  
 - Reverse proxy support  
@@ -105,7 +105,7 @@ These tests help ensure Redis-like behavior and internal consistency.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ```bash
 # Clone the repository
